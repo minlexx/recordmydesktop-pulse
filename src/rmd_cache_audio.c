@@ -74,8 +74,10 @@ void *CacheSoundBuffer(ProgData *pdata){
             //advance the list
             pdata->sound_buffer=pdata->sound_buffer->next;
             pthread_mutex_unlock(&pdata->sound_buffer_mutex);
-            fwrite(buff->data,1,pdata->periodsize*pdata->sound_framesize,
-                   pdata->cache_data->afp);
+            // write audio data to cache file
+            //fwrite(buff->data,1,pdata->periodsize*pdata->sound_framesize,
+            //       pdata->cache_data->afp);
+            fwrite(buff->data, 1, buff->datasize, pdata->cache_data->afp);
             free(buff->data);
             free(buff);
         }
