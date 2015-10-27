@@ -337,6 +337,7 @@ struct _ProgData {
 #ifdef HAVE_LIBASOUND
     snd_pcm_t *sound_handle;
     snd_pcm_uframes_t periodsize;
+    boolean    using_pulseaudio;
 #else
     int sound_handle;
     u_int32_t periodsize;

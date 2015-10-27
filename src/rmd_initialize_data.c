@@ -111,18 +111,64 @@ int InitializeData(ProgData *pdata,
         if(!pdata->args.use_jack){
             FixBufferSize(&pdata->args.buffsize);
 #ifdef HAVE_LIBASOUND
-            pdata->sound_handle=OpenDev( pdata->args.device,
-                                        &pdata->args.channels,
-                                        &pdata->args.frequency,
-                                        &pdata->args.buffsize,
-                                        &pdata->periodsize,
-                                        &pdata->periodtime,
-                                        &pdata->hard_pause);
-            pdata->sound_framesize=((snd_pcm_format_width(
-                                     SND_PCM_FORMAT_S16_LE))/8)*
-                                     pdata->args.channels;
+            // first indicate that we do not use pulse
+            pdata->using_pulseaudio = FALSE;
+#ifdef HAVE_LIBPULSE_SIMPLE
+            // first try to connect to pulseaudio,
+            // if compiled with pulse support
+            pdata->paconn_handle = NULL;
+            // fill PulseAudio format dpecifier
+            static pa_sample_spec pa_sspec;
+            pa_sspec.channels = (uint8_t)pdata->args.channels;
+            pa_sspec.format = PA_SAMPLE_S16LE;
+            pa_sspec.rate = pdata->args.frequency;
+            // use maximum supported default values from PA server (recommended)
+            static pa_buffer_attr pa_bufattr;
+            pa_bufattr.fragsize = (uint32_t)-1;  // Recording only: fragment size.
+            pa_bufattr.maxlength = (uint32_t)-1; // Maximum length of the buffer in bytes.
+            pa_bufattr.minreq = (uint32_t)-1; // Playback only: minimum request.
+            pa_bufattr.prebuf = (uint32_t)-1; // Playback only: pre-buffering.
+            pa_bufattr.tlength = (uint32_t)-1; // Playback only: target length of the buffer.
+            static int pa_error = 0;
+            printf("Compiled with PulseAudio library version: %s\n",
+                    pa_get_library_version());
+            printf("Initializing audio: trying PulseAudio first...\n");
+            pdata->paconn_handle = pa_simple_new(
+                NULL, // default PA server
+                PACKAGE_NAME, // app name
+                PA_STREAM_RECORD,  // stream direction
+                NULL, // default device
+                "record", // stream name
+                &pa_sspec,  // format spec
+                NULL, // default channel map
+                &pa_bufattr, // may be NULL for defaults, but we want tweak!
+                &pa_error);
+            if( pdata->paconn_handle == NULL ) {
+                fprintf(stderr, __FILE__": pa_simple_new() failed: %s\n", pa_strerror(pa_error));
+                printf("PulseAudio failed, will try ALSA.\n");
+            } else {
+                // indicate that we successfully connected to PA server
+                // now no need to use ALSA
+                pdata->using_pulseaudio = TRUE;
+                printf("Connected to PulseAudio server, will not try ALSA.\n");
+            }
+#endif
+            // try open ALSA if not compiled with pulse support
+            //    or pulseaudio connection failed
+            if( !pdata->using_pulseaudio ) {
+                pdata->sound_handle=OpenDev( pdata->args.device,
+                                            &pdata->args.channels,
+                                            &pdata->args.frequency,
+                                            &pdata->args.buffsize,
+                                            &pdata->periodsize,
+                                            &pdata->periodtime,
+                                            &pdata->hard_pause);
+                pdata->sound_framesize=((snd_pcm_format_width(
+                                         SND_PCM_FORMAT_S16_LE))/8)*
+                                         pdata->args.channels;
+            }
 
-            if(pdata->sound_handle==NULL){
+            if( (pdata->sound_handle == NULL) && !pdata->using_pulseaudio) {
 #else
             pdata->sound_handle=OpenDev(pdata->args.device,
                                         pdata->args.channels,
@@ -134,7 +180,7 @@ int InitializeData(ProgData *pdata,
             pdata->sound_framesize=pdata->args.channels<<1;
             if(pdata->sound_handle<0){
 #endif
-                fprintf(stderr,"Error while opening/configuring soundcard %s\n"
+                fprintf(stderr,"Error while opening/configuring ALSA soundcard %s\n"
                             "Try running with the --no-sound or specify a "
                             "correct device.\n",
                             pdata->args.device);
