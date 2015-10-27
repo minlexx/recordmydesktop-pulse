@@ -42,6 +42,11 @@ static void PrintConfig(void) {
 #else
     fprintf(stdout,"Jack\t\t\t:Disabled\n");
 #endif
+#ifdef HAVE_LIBPULSE_SIMPLE
+    fprintf(stdout,"PulseAudio\t\t:Enabled\n");
+#else
+    fprintf(stdout,"PulseAudio\t\t:Disabled\n");
+#endif
 #ifdef HAVE_LIBASOUND
     fprintf(stdout,"Default Audio Backend\t:ALSA\n");
 #else
