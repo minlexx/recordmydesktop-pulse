@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT( [recordmydesktop], [0.3.8.1], )
+AC_INIT( [recordmydesktop], [0.4], )
 AM_INIT_AUTOMAKE
 
 AC_CONFIG_SRCDIR([src/rmd.c])
@@ -51,6 +51,14 @@ AC_ARG_ENABLE(jack,
        *) AC_MSG_ERROR(bad value ${enableval} for --enable-jack) ;;
      esac],[jack=true])
 
+AC_ARG_ENABLE(pulse,
+     [  --enable-pulse[=yes]    compile with PulseAudio support],
+     [case "${enableval}" in
+       yes) pulse=true ;;
+       no)  pulse=false ;;
+       *) AC_MSG_ERROR(bad value ${enableval} for --enable-pulse) ;;
+     esac],[pulse=true])
+
 AC_CHECK_HEADER([alsa/asoundlib.h])
 AC_CHECK_HEADER([endian.h],default_endian=true)
 if test x$default_endian != xtrue; then
@@ -63,6 +71,7 @@ AC_CHECK_HEADER([sys/soundcard.h])
 
 AC_CHECK_HEADERS([sys/time.h unistd.h vorbis/vorbisfile.h fcntl.h])
 
+AC_CHECK_HEADERS([pulse/simple.h pulse/error.h])
 
 
 AC_CHECK_TYPES([u_int16_t],,AC_MSG_ERROR([Type u_int16_t must be available!]))
@@ -98,6 +107,11 @@ if test x$jack = xtrue ; then
 AC_CHECK_LIB([jack],[jack_activate],jack_lib_found=true,)
 fi
 
+if test x$pulse = xtrue ; then
+AC_CHECK_LIB([pulse-simple],[pa_simple_new],pulse_simple_lib_found=true,)
+AC_CHECK_LIB([pulse-simple],[pa_simple_new],,AC_MSG_ERROR([Can't find libpulse-simple]))
+fi
+
 if test x$oss = xfalse; then
     AC_CHECK_LIB([asound],[snd_pcm_drain],,
                 audio_backend="OSS")
@@ -111,11 +125,6 @@ fi
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_MALLOC
 
-AC_CONFIG_FILES([Makefile
-        src/Makefile
-        doc/Makefile ])
-AC_OUTPUT
-
 if test x$audio_backend != xOSS; then
     audio_backend="ALSA"
 fi
@@ -124,6 +133,18 @@ if test x$jack_lib_found = xtrue ; then
 else
     jack_support="Disabled"
 fi
+if test x$pulse_simple_lib_found = xtrue ; then
+    pulse_support="Enabled"
+    AC_DEFINE([HAVE_LIBPULSE_SIMPLE],1,[PulseAudio simple lib found])
+else
+    pulse_support="Disabled"
+fi
+
+AC_CONFIG_FILES([Makefile
+        src/Makefile
+        doc/Makefile ])
+AC_OUTPUT
+
 echo ""
 echo ""
 echo "****************************************"
@@ -131,6 +152,7 @@ echo ""
 echo "Audio driver that will be used: $audio_backend"
 echo ""
 echo "Compile with Jack support: $jack_support"
+echo "Compile with PulseAudio support: $pulse_support"
 echo ""
 echo "****************************************"
 echo ""

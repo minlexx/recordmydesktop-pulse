@@ -33,3 +33,7 @@
 
 # KDE
 .directory
+
+
+build/*
+nbproject/*
