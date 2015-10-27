@@ -110,6 +110,7 @@ fi
 if test x$pulse = xtrue ; then
 AC_CHECK_LIB([pulse-simple],[pa_simple_new],pulse_simple_lib_found=true,)
 AC_CHECK_LIB([pulse-simple],[pa_simple_new],,AC_MSG_ERROR([Can't find libpulse-simple]))
+AC_CHECK_LIB([pulse],[pa_strerror],,AC_MSG_ERROR([Can't find libpulse]))
 fi
 
 if test x$oss = xfalse; then
