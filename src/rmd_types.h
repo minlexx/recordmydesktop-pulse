@@ -217,6 +217,7 @@ typedef struct _CacheData{
 //which we then traverse
 typedef struct _SndBuffer{
     signed char *data;
+    size_t datasize;
     struct _SndBuffer *next;
 }SndBuffer;
 
