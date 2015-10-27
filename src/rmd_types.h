@@ -52,6 +52,11 @@
     #include <jack/ringbuffer.h>
 #endif
 
+#ifdef HAVE_LIBPULSE_SIMPLE
+#include <pulse/simple.h>
+#include <pulse/error.h>
+#endif
+
 
 //this type exists only
 //for comparing the planes at caching.
@@ -335,6 +340,10 @@ struct _ProgData {
 #else
     int sound_handle;
     u_int32_t periodsize;
+#endif
+    
+#ifdef HAVE_LIBPULSE_SIMPLE
+    pa_simple *paconn_handle;
 #endif
 };
 
