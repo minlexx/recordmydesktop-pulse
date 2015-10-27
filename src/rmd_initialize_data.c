@@ -53,7 +53,9 @@ static void FixBufferSize(u_int32_t *buffsize) {
         buffsize_t>>=1;
         buffsize_ret<<=1;
     }
-    fprintf(stderr,"Buffer size adjusted to %d from %d frames.\n",
+    // fix: output buffer size adjustment only if it really happened
+    if( (int)buffsize_ret != ((int)*buffsize) )
+        fprintf(stderr, "Buffer size adjusted to %d from %d frames.\n",
                    (int)buffsize_ret,(int)*buffsize);
 }
 
