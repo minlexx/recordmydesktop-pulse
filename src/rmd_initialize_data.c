@@ -150,6 +150,9 @@ int InitializeData(ProgData *pdata,
                 // indicate that we successfully connected to PA server
                 // now no need to use ALSA
                 pdata->using_pulseaudio = TRUE;
+                pdata->sound_framesize = pdata->args.channels * 2;
+                pdata->periodsize = pdata->args.buffsize / pdata->sound_framesize; // ?
+                // ^^ we need to initialize it here
                 printf("Connected to PulseAudio server, will not try ALSA.\n");
             }
 #endif
@@ -163,9 +166,12 @@ int InitializeData(ProgData *pdata,
                                             &pdata->periodsize,
                                             &pdata->periodtime,
                                             &pdata->hard_pause);
+                // snd_pcm_format_width — return the bit-width of the format
                 pdata->sound_framesize=((snd_pcm_format_width(
                                          SND_PCM_FORMAT_S16_LE))/8)*
                                          pdata->args.channels;
+                // ^^ size of one sound frame in bytes
+                // pdata->periodsize is approximate period size in frames
             }
 
             if( (pdata->sound_handle == NULL) && !pdata->using_pulseaudio) {
