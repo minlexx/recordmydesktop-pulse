@@ -55,7 +55,7 @@ int GetZPixmap(Display *dpy,
     request->y=y;
     request->width=width;
     request->height=height;
-    request->planeMask=AllPlanes;
+    request->planeMask=(unsigned int)AllPlanes; // fix warning
     request->format=ZPixmap;
     if((!_XReply(dpy,(xReply *)&reply,0,xFalse))||(!reply.length)){
         UnlockDisplay(dpy);
@@ -94,7 +94,7 @@ int GetZPixmapSHM(Display *dpy,
     request->y=y;
     request->width=width;
     request->height=height;
-    request->planeMask=AllPlanes;
+    request->planeMask=(unsigned int)AllPlanes; // fix warning
     request->format=ZPixmap;
     request->offset=data-shminfo->shmaddr;
 
