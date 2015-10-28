@@ -126,7 +126,7 @@ boolean ParseArgs(int argc, char **argv, ProgArgs *arg_return) {
     "\t--stop-shortcut MOD+KEY\tShortcut that will be used to stop the "
     "recording (default Control+Mod1+s).\n" 
 
-    "\t--compress-cache\tImage data are cached with light compression.\n"
+    "\t--compress-cache\tImage data is cached with light compression (default: no).\n"
     "\t--workdir DIR\t\tLocation where a temporary directory"
     " will be created to hold project files(default $HOME).\n"
 
