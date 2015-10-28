@@ -1,3 +1,8 @@
+/*Version 0.4*/
+* Added PulseAudio support.
+* Added gentoo patche for new libtheora
+* Added gentoo patch 'fix jack detection'
+
 /*Version 0.3.8.1*/
 * Fixed a bug that caused compilation to fail on some platforms, due 
 to missing headers.
