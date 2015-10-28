@@ -41,7 +41,7 @@ void *CaptureSound(ProgData *pdata){
 #ifdef HAVE_LIBASOUND
     int frames=pdata->periodsize;
     // ^^ approximate period size in frames,
-    //    how many frames fitsudo ,v in buffer
+    //    how many frames fit in buffer
 #endif
     //start capturing only after first frame is taken
     usleep(pdata->frametime);
