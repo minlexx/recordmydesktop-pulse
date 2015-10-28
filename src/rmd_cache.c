@@ -54,58 +54,57 @@ static void CacheFileN(char *name, char **newname, int n) { // Nth cache file
     strcat(*newname,numbuf);
 }
 
-int SwapCacheFilesWrite(char *name,int n,gzFile **fp,FILE **ucfp){
-    char *newname=malloc(strlen(name)+10);
-    CacheFileN(name,&newname,n);
-    if(*fp==NULL){
+int SwapCacheFilesWrite(char *name, int n, gzFile *gzfp, FILE **ucfp) {
+    char *newname = malloc( strlen(name)+10 );
+    CacheFileN(name, &newname, n);
+    if(*gzfp == NULL) {
         fflush(*ucfp);
         fclose(*ucfp);
-        *ucfp=fopen(newname,"wb");
+        *ucfp = fopen(newname,"wb");
     }
-    else{
-        gzflush(*fp,Z_FINISH);
-        gzclose(*fp);
-        *fp=gzopen(newname,"wb0f");
+    else {
+        gzflush(*gzfp, Z_FINISH);
+        gzclose(*gzfp);
+        *gzfp = gzopen(newname, "wb0f");
     }
     free(newname);
-    return ((*fp==NULL)&&(*ucfp==NULL));
+    return ((*gzfp == NULL) && (*ucfp == NULL));
 }
 
-int SwapCacheFilesRead(char *name,int n,gzFile **fp,FILE **ucfp){
-    char *newname=malloc(strlen(name)+10);
-    CacheFileN(name,&newname,n);
-    if(*fp==NULL){
+int SwapCacheFilesRead(char *name, int n, gzFile *gzfp, FILE **ucfp) {
+    char *newname = malloc(strlen(name)+10);
+    CacheFileN(name, &newname, n);
+    if(*gzfp == NULL) {
         fclose(*ucfp);
-        *ucfp=fopen(newname,"rb");
+        *ucfp = fopen(newname, "rb");
     }
     else{
-
-        gzclose(*fp);
-        *fp=gzopen(newname,"rb");
+        gzclose(*gzfp);
+        *gzfp = gzopen(newname, "rb");
     }
     free(newname);
-    return ((*fp==NULL)&&(*ucfp==NULL));
+    return ((*gzfp == NULL) && (*ucfp == NULL));
 }
 
-int PurgeCache(CacheData *cache_data_t,int sound){
+int PurgeCache(CacheData *cache_data_t, int sound) {
     struct stat buff;
     char *fname;
-    fname=malloc(strlen(cache_data_t->imgdata)+10);
-    strcpy(fname,cache_data_t->imgdata);
+    fname = malloc(strlen(cache_data_t->imgdata)+10);
+    strcpy(fname, cache_data_t->imgdata);
     int exit_value=0;
     int nth_cache=1;
 
-    while (stat(fname,&buff)==0){
+    while (stat(fname,&buff)==0) {
         if(remove(fname)){
             fprintf(stderr,"Couldn't remove temporary file %s",
                            cache_data_t->imgdata);
             exit_value=1;
         }
-        CacheFileN(cache_data_t->imgdata,&fname,nth_cache);
+        CacheFileN(cache_data_t->imgdata, &fname, nth_cache);
         nth_cache++;
     }
     free(fname);
-    if(sound){
+    if(sound) {
         if(remove(cache_data_t->audiodata)){
             fprintf(stderr,"Couldn't remove temporary file %s",
                            cache_data_t->audiodata);
@@ -186,36 +185,36 @@ void InitCacheData(ProgData *pdata,
     //now that've got out buffers and our filenames we start
     //creating the needed files
 
-    if(mkdir(cache_data_t->projname,0777)){
+    if(mkdir(cache_data_t->projname,0777)) {
         fprintf(stderr,"Could not create temporary directory %s !!!\n",
                        cache_data_t->projname);
         exit(13);
     }
-    if(!pdata->args.zerocompression){
-        cache_data_t->ifp=gzopen(cache_data_t->imgdata,"wb0f");
-        if(cache_data_t->ifp==NULL){
+    if(!pdata->args.zerocompression) {
+        cache_data_t->ifp = gzopen(cache_data_t->imgdata, "wb0f");
+        if(cache_data_t->ifp == NULL) {
+            fprintf(stderr, "Could not create temporary file %s !!!\n",
+                           cache_data_t->imgdata);
+            exit(13);
+        }
+    }
+    else {
+        cache_data_t->uncifp = fopen(cache_data_t->imgdata, "wb");
+        if(cache_data_t->uncifp == NULL){
             fprintf(stderr,"Could not create temporary file %s !!!\n",
                            cache_data_t->imgdata);
             exit(13);
         }
     }
-    else{
-        cache_data_t->uncifp=fopen(cache_data_t->imgdata,"wb0f");
-        if(cache_data_t->uncifp==NULL){
-            fprintf(stderr,"Could not create temporary file %s !!!\n",
-                           cache_data_t->imgdata);
-            exit(13);
-        }
-    }
-    if(!pdata->args.nosound){
-        cache_data_t->afp=fopen(cache_data_t->audiodata,"wb");
-        if(cache_data_t->afp==NULL){
-           fprintf(stderr,"Could not create temporary file %s !!!\n",
+    if(!pdata->args.nosound) {
+        cache_data_t->afp = fopen(cache_data_t->audiodata,"wb");
+        if(cache_data_t->afp == NULL){
+           fprintf(stderr, "Could not create temporary file %s !!!\n",
                           cache_data_t->audiodata);
            exit(13);
         }
     }
-    if(WriteSpecsFile(pdata)){
+    if(WriteSpecsFile(pdata)) {
         fprintf(stderr,"Could not write specsfile %s !!!\n",
                         cache_data_t->specsfile);
         exit(13);

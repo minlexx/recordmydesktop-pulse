@@ -82,18 +82,18 @@ static void LoadBlock(unsigned char *dest,
 }
 
 //returns number of bytes
-static int ReadZF(void * buffer, size_t size, size_t nmemb, FILE *ucfp, gzFile *ifp) {
+static int ReadZF(void * buffer, size_t size, size_t nmemb, FILE *ucfp, gzFile ifp) {
     if((ifp!=NULL && ucfp!=NULL)||
        (ifp==NULL && ucfp==NULL))
         return -1;
     else if(ucfp!=NULL){
-        return (size*fread(buffer,size,nmemb,ucfp));
+        return (size * fread(buffer, size, nmemb, ucfp));
     }
     else
-        return gzread(ifp,buffer,size*nmemb);
+        return gzread(ifp, buffer, size * nmemb);
 }
 
-static int ReadFrame(CachedFrame *frame, FILE *ucfp, gzFile *ifp) {
+static int ReadFrame(CachedFrame *frame, FILE *ucfp, gzFile ifp) {
     int index_entry_size=sizeof(u_int32_t);
     if(frame->header->Ynum>0){
         if(ReadZF(frame->YBlocks,
@@ -155,9 +155,9 @@ static int ReadFrame(CachedFrame *frame, FILE *ucfp, gzFile *ifp) {
 void *LoadCache(ProgData *pdata){
 
     yuv_buffer *yuv=&pdata->enc_data->yuv;
-    gzFile *ifp=NULL;
-    FILE *ucfp=NULL;
-    FILE *afp=pdata->cache_data->afp;
+    gzFile ifp = NULL;
+    FILE *ucfp = NULL;
+    FILE *afp = pdata->cache_data->afp;
     FrameHeader fheader;
     CachedFrame frame;
     int j=0,
@@ -188,33 +188,33 @@ void *LoadCache(ProgData *pdata){
     frame.VData   = malloc(yuv->uv_width * yuv->uv_height);
 
     //and the we open our files
-    if(!pdata->args.zerocompression){
-        ifp=gzopen(pdata->cache_data->imgdata,"rb");
-        if(ifp==NULL){
-            thread_exit=-1;
+    if( !pdata->args.zerocompression ) {
+        ifp = gzopen( pdata->cache_data->imgdata, "rb");
+        if(ifp == NULL) {
+            thread_exit = -1;
             pthread_exit(&thread_exit);
         }
     }
-    else{
-        ucfp=fopen(pdata->cache_data->imgdata,"rb");
-        if(ucfp==NULL){
-            thread_exit=-1;
+    else {
+        ucfp = fopen(pdata->cache_data->imgdata, "rb");
+        if(ucfp == NULL){
+            thread_exit = -1;
             pthread_exit(&thread_exit);
         }
     }
 
 
-    if(!pdata->args.nosound){
-        afp=fopen(pdata->cache_data->audiodata,"rb");
-        if(afp==NULL){
-            thread_exit=-1;
+    if(!pdata->args.nosound) {
+        afp = fopen(pdata->cache_data->audiodata,"rb");
+        if(afp == NULL){
+            thread_exit = -1;
             pthread_exit(&thread_exit);
         }
     }
 
     //this will be used now to define if we proccess audio or video
     //on any given loop.
-    pdata->avd=0;
+    pdata->avd = 0;
     //If sound finishes first,we go on with the video.
     //If video ends we will do one more run to flush audio in the ogg file
     while(pdata->running){
@@ -225,13 +225,10 @@ void *LoadCache(ProgData *pdata){
                 missing_frames--;
                 SyncEncodeImageBuffer(pdata);
             }
-            else if(((!pdata->args.zerocompression)&&
-                     (gzread(ifp,frame.header,sizeof(FrameHeader))==
-                      sizeof(FrameHeader) ))||
-                    ((pdata->args.zerocompression)&&
-                    (fread(frame.header,sizeof(FrameHeader),1,ucfp)==1))){
+            else if(((!pdata->args.zerocompression) && (gzread(ifp, frame.header, sizeof(FrameHeader)) == sizeof(FrameHeader) ))
+                    || ((pdata->args.zerocompression) && (fread(frame.header,sizeof(FrameHeader),1,ucfp) == 1))) {
                 //sync
-                missing_frames+=frame.header->current_total-
+                missing_frames += frame.header->current_total-
                                 (extra_frames+frame.header->frameno);
                 if (pdata->frames_total) {
                     fprintf(stdout,
@@ -328,12 +325,18 @@ void *LoadCache(ProgData *pdata){
 
     free(sound_data);
 
-    if(!pdata->args.nosound){
-        fclose(afp);
+    // close video cache file
+    if( !pdata->args.zerocompression ) {
+        if( ifp ) gzclose( ifp );
+    } else {
+        if( ucfp ) fclose( ucfp );
+    }
+    
+    // close audio cache file
+    if( !pdata->args.nosound) {
+        if( afp ) fclose( afp );
     }
 
     pthread_exit(&thread_exit);
-
-
 }
 
