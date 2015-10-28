@@ -8,3 +8,5 @@ OSS is too old and should not be used. PulseAudio is used only if compiled with 
 No special command line options are needed to run recording with pulseaudio (unlike JACK, which requires --jack option). If compiled with alsa+pulse support, recordmydesktop first tries to connect to PulseAudio server, and if that fails, falls back to ALSA. Full backward compatibility.
 
 In case of using pulseaudio, only the source of audio data bytes is changed, all other caching/encoding processes are the same as before.
+
+The behavior of front-ends like qt-recordMyDesktop or gtk-recordMyDesktop is not affected in any way.
