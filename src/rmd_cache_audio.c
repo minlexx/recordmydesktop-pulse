@@ -70,16 +70,16 @@ void *CacheSoundBuffer(ProgData *pdata){
                 break;
             }
             pthread_mutex_lock(&pdata->sound_buffer_mutex);
-            buff=pdata->sound_buffer;
+            buff = pdata->sound_buffer;
             //advance the list
-            pdata->sound_buffer=pdata->sound_buffer->next;
+            pdata->sound_buffer = pdata->sound_buffer->next;
             pthread_mutex_unlock(&pdata->sound_buffer_mutex);
             // write audio data to cache file
             //fwrite(buff->data,1,pdata->periodsize*pdata->sound_framesize,
             //       pdata->cache_data->afp);
             fwrite(buff->data, 1, buff->datasize, pdata->cache_data->afp);
-            free(buff->data);
-            free(buff);
+            free( buff->data );
+            free( buff );
         }
         else{
 #ifdef HAVE_LIBJACK

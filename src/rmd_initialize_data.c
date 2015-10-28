@@ -153,7 +153,17 @@ int InitializeData(ProgData *pdata,
                 pdata->sound_framesize = pdata->args.channels * 2;
                 pdata->periodsize = pdata->args.buffsize / pdata->sound_framesize; // ?
                 // ^^ we need to initialize it here
+                // how many frames fit in buffer
+                pdata->hard_pause = FALSE; // do not support HW pause
+                // time that a single audio frame lasts (microsecs)
+                float aframe_time_microsecs = 1000000.0f / (float)pdata->args.frequency;
+                // time that a sound buffer lasts (microsecs)
+                pdata->periodtime = (unsigned int)( (float)aframe_time_microsecs * (float)pdata->periodsize);
+                // output
                 printf("Connected to PulseAudio server, will not try ALSA.\n");
+                printf("  sound_framesize = %d bytes\n", pdata->sound_framesize);
+                printf("  periodsize = %lu frames\n", pdata->periodsize);
+                printf("  periodtime = %u microseconds\n", pdata->periodtime);
             }
 #endif
             // try open ALSA if not compiled with pulse support

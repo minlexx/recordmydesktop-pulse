@@ -40,7 +40,8 @@ void *CaptureSound(ProgData *pdata){
 
 #ifdef HAVE_LIBASOUND
     int frames=pdata->periodsize;
-    // ^^ approximate period size in frames
+    // ^^ approximate period size in frames,
+    //    how many frames fitsudo ,v in buffer
 #endif
     //start capturing only after first frame is taken
     usleep(pdata->frametime);
@@ -117,34 +118,32 @@ void *CaptureSound(ProgData *pdata){
         //create new buffer
         newbuf=(SndBuffer *)malloc(sizeof(SndBuffer));
         newbuf->data = NULL;
-        size_t newbuf_datasize = 0;
+        newbuf->next=NULL;
+        newbuf->datasize = 0;
 #ifdef HAVE_LIBASOUND
         if( !pdata->using_pulseaudio) {
             // using pure alsa
-            newbuf->data=(signed char *)malloc(frames*pdata->sound_framesize);
-            newbuf_datasize = frames*pdata->sound_framesize;
-            newbuf->datasize = newbuf_datasize;
+            newbuf->datasize = frames * pdata->sound_framesize;
+            newbuf->data=(signed char *)malloc(newbuf->datasize);
         } else {
-            // for pulseaudio allocate buffer as for #else branch
-            newbuf->data=(signed char *)malloc((pdata->args.buffsize << 1) * pdata->args.channels);
-            newbuf_datasize = (pdata->args.buffsize << 1) * pdata->args.channels;
-            newbuf->datasize = newbuf_datasize;
+            // for pulseaudio allocate buffer as for #else branch (OSS)
+            newbuf->datasize = (pdata->args.buffsize << 1) * pdata->args.channels;
+            newbuf->data=(signed char *)malloc(newbuf->datasize);
         }
 #else
-        newbuf->data=(signed char *)malloc(((pdata->args.buffsize<<1)*
-                                            pdata->args.channels));
-        newbuf_datasize = (pdata->args.buffsize << 1) * pdata->args.channels;
-        newbuf->datasize = newbuf_datasize;
+        newbuf->datasize = (pdata->args.buffsize << 1) * pdata->args.channels;
+        newbuf->data=(signed char *)malloc(newbuf->datasize);
 #endif
-        newbuf->next=NULL;
 
         //read data into new buffer
 #ifdef HAVE_LIBASOUND
 #ifdef HAVE_LIBPULSE_SIMPLE
         if( pdata->using_pulseaudio ) {
             int pa_error = 0;
-            int ret = pa_simple_read(pdata->paconn_handle, newbuf->data,
-                    newbuf_datasize, &pa_error);
+            // this always reads specified number of bytes, so
+            // no need to create "recording loop"
+            int ret = pa_simple_read( pdata->paconn_handle, newbuf->data,
+                    newbuf->datasize, &pa_error );
             if( ret < 0 ) {
                 fprintf(stderr, __FILE__": pa_simple_read() failed: %s\n", pa_strerror(pa_error));
                 pdata->running = FALSE;
