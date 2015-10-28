@@ -35,15 +35,17 @@ need the libasound headers.If they are not found, OSS
 will be used and you must have the sys/soundcard.h header.
 To use OSS regardless of whether or not you have the ALSA
 headers, you can use the --enable-oss switch during
-configuration.
+configure. However, OSS usage is not recommended nowadays.
 
+If you want to compile with PulseAudio support, you will also
+need the libpulse and libpulse-simple headers (and PulseAudio
+installed).
 
 
 Last, you need the regular headers, plus the ones for pthreads
 (both of which you should have if you have compiled anything else before).
 
-Of the above, the most likely to be missing are probably those of libXdamage and libtheora
-but any recent linux distribution should offer an easy way to get them.
-
-
+Of the above, the most likely to be missing are probably those of libXdamage
+and libtheora but any recent linux distribution should offer an easy way
+to get them.
 
