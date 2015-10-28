@@ -104,12 +104,17 @@ AC_CHECK_LIB([pthread],[pthread_mutex_lock],,
              AC_MSG_ERROR([Can't find libpthread]))
 
 if test x$jack = xtrue ; then
-AC_CHECK_LIB([jack],[jack_activate],jack_lib_found=true,)
+AC_CHECK_LIB([jack],[jack_activate],
+             [LIBS="$LIBS -ljack"
+              AC_DEFINE([HAVE_LIBJACK], [1], [Define to 1 if you have libjack.])
+              jack_lib_found=true])
 fi
 
 if test x$pulse = xtrue ; then
-AC_CHECK_LIB([pulse-simple],[pa_simple_new],pulse_simple_lib_found=true,)
-AC_CHECK_LIB([pulse-simple],[pa_simple_new],,AC_MSG_ERROR([Can't find libpulse-simple]))
+AC_CHECK_LIB([pulse-simple], [pa_simple_new],
+             [LIBS="$LIBS -lpulse-simple"
+              pulse_simple_lib_found=true],
+              AC_MSG_ERROR([Can't find libpulse-simple]))
 AC_CHECK_LIB([pulse],[pa_strerror],,AC_MSG_ERROR([Can't find libpulse]))
 fi
 
